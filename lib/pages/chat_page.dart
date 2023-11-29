@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:final_project/pages/login_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:final_project/models/message.dart';
@@ -53,10 +54,22 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  Future<void> logOutUser() async {
+    await supabase.auth.signOut();
+    Navigator.of(context)
+          .pushAndRemoveUntil(LoginPage.route(), (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(title: const Text('Chat'),
+      actions: <Widget>[
+        IconButton(
+          onPressed: () => logOutUser(), 
+          icon: const Icon(Icons.logout),
+          tooltip: 'Logout')
+      ]),
       body: StreamBuilder<List<Message>>(
         stream: _messagesStream,
         builder: (context, snapshot) {
