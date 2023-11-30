@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:final_project/pages/login_page.dart';
+import 'package:final_project/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:final_project/models/message.dart';
@@ -60,11 +61,19 @@ class _ChatPageState extends State<ChatPage> {
           .pushAndRemoveUntil(LoginPage.route(), (route) => false);
   }
 
+  Future<void> profileSettingsPage() async{
+    Navigator.of(context).pushAndRemoveUntil(SettingsPage.route(), (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Chat'),
       actions: <Widget>[
+        IconButton(
+          onPressed: () => profileSettingsPage(), 
+          icon: const Icon(Icons.person),
+          tooltip: 'Profile Settings'),
         IconButton(
           onPressed: () => logOutUser(), 
           icon: const Icon(Icons.logout),
