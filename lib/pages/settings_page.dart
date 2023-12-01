@@ -54,9 +54,18 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             SizedBox(height: 16),
-            // Add your settings widgets here
           ],
         ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+            children: [ElevatedButton(
+              onPressed: (){}, //Add In Change Settings function
+              child: const Text('Apply Settings')),
+              ElevatedButton(
+                onPressed: (){}, //Add in DeleteAccount function
+                child: const Text('Delete Account'))],
+          ),
       ),
     );
   }

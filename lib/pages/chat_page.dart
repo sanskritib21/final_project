@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:final_project/pages/login_page.dart';
+import 'package:final_project/pages/register_page.dart';
 import 'package:final_project/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 
@@ -58,7 +58,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> logOutUser() async {
     await supabase.auth.signOut();
     Navigator.of(context)
-          .pushAndRemoveUntil(LoginPage.route(), (route) => false);
+          .pushAndRemoveUntil(RegisterPage.route(), (route) => false);
   }
 
   Future<void> profileSettingsPage() async{
