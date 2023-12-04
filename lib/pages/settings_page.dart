@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:final_project/pages/login_page.dart';
 import 'package:final_project/pages/chat_page.dart';
+import 'package:final_project/pages/register_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:final_project/models/message.dart';
@@ -25,6 +26,33 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   
+  Future<void> deleteAccount() async{
+    // Replace these values with your Supabase project details
+    final supabaseUrl = 'https://ponbrunytdudhkxfaubf.supabase.co';
+    final supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvbmJydW55dGR1ZGhreGZhdWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDEyNzg0NDEsImV4cCI6MjAxNjg1NDQ0MX0.bEyxmhkAz_uEe6UI19X8lj4ia0Du61Y6AyO8gfxlkUQ';
+    final client = SupabaseClient(supabaseUrl, supabaseKey);
+
+    // Delete user profile
+    final response = await client.from('profiles').delete().eq('id', supabase.auth.currentUser!.id);
+    
+    Navigator.of(context)
+          .pushAndRemoveUntil(RegisterPage.route(), (route) => false);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context){
+        return AlertDialog(
+          title: Text('Account Deletion Confirmation'),
+          actions: [
+            TextButton(onPressed: (){
+              Navigator.of(context).pop();
+            }, child: Text('Ok'))
+          ]
+        );
+      });
+
+  }
+
   Future<void> returnToChatPage() async{
     Navigator.of(context)
           .pushAndRemoveUntil(ChatPage.route(), (route) => false);
@@ -63,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: (){}, //Add In Change Settings function
               child: const Text('Apply Settings')),
               ElevatedButton(
-                onPressed: (){}, //Add in DeleteAccount function
+                onPressed: () => deleteAccount(), //Add in DeleteAccount function
                 child: const Text('Delete Account'))],
           ),
       ),
