@@ -1,18 +1,14 @@
 import 'dart:async';
-
-import 'package:final_project/pages/register_page.dart';
-import 'package:final_project/pages/settings_page.dart';
 import 'package:flutter/material.dart';
-
 import 'package:final_project/models/message.dart';
 import 'package:final_project/models/profile.dart';
 import 'package:final_project/utils/constants.dart';
+import 'package:final_project/pages/profile_page.dart';
+import 'package:final_project/pages/settings_page.dart';
+import 'package:final_project/pages/register_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart';
 
-/// Page to chat with someone.
-///
-/// Displays chat bubbles as a ListView and TextField to enter new chat.
 class ChatPage extends StatefulWidget {
   const ChatPage({Key? key}) : super(key: key);
 
@@ -27,6 +23,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  int _selectedIndex = 1; // Default index for Chat
   late final Stream<List<Message>> _messagesStream;
   final Map<String, Profile> _profileCache = {};
 
@@ -55,73 +52,94 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<void> logOutUser() async {
-    await supabase.auth.signOut();
-    Navigator.of(context)
-          .pushAndRemoveUntil(RegisterPage.route(), (route) => false);
-  }
+  Widget _buildChatContent() {
+    return StreamBuilder<List<Message>>(
+      stream: _messagesStream,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final messages = snapshot.data!;
+          return Column(
+            children: [
+              Expanded(
+                child: messages.isEmpty
+                    ? const Center(
+                        child: Text('Start your conversation now :)'),
+                      )
+                    : ListView.builder(
+                        reverse: true,
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
 
-  Future<void> profileSettingsPage() async{
-    Navigator.of(context).pushAndRemoveUntil(SettingsPage.route(), (route) => false);
+                          _loadProfileCache(message.profileId);
+
+                          return _ChatBubble(
+                            message: message,
+                            profile: _profileCache[message.profileId],
+                          );
+                        },
+                      ),
+              ),
+              const _MessageBar(),
+            ],
+          );
+        } else {
+          return preloader;
+        }
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat'),
-      actions: <Widget>[
-        IconButton(
-          onPressed: () => profileSettingsPage(), 
-          icon: const Icon(Icons.person),
-          tooltip: 'Profile Settings'),
-        IconButton(
-          onPressed: () => logOutUser(), 
-          icon: const Icon(Icons.logout),
-          tooltip: 'Logout')
-      ]),
-      body: StreamBuilder<List<Message>>(
-        stream: _messagesStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final messages = snapshot.data!;
-            return Column(
-              children: [
-                Expanded(
-                  child: messages.isEmpty
-                      ? const Center(
-                          child: Text('Start your conversation now :)'),
-                        )
-                      : ListView.builder(
-                          reverse: true,
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) {
-                            final message = messages[index];
-
-                            /// I know it's not good to include code that is not related
-                            /// to rendering the widget inside build method, but for
-                            /// creating an app quick and dirty, it's fine 😂
-                            _loadProfileCache(message.profileId);
-
-                            return _ChatBubble(
-                              message: message,
-                              profile: _profileCache[message.profileId],
-                            );
-                          },
-                        ),
-                ),
-                const _MessageBar(),
-              ],
-            );
-          } else {
-            return preloader;
-          }
+      appBar: AppBar(
+        actions: <Widget>[
+          if (_selectedIndex == 1)
+            IconButton(
+              onPressed: () => logOutUser(),
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+            ),
+        ],
+      ),
+      body: _selectedIndex == 0
+          ? const ProfilePage()
+          : _selectedIndex == 1
+              ? _buildChatContent()
+              : const SettingsPage(),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
         },
       ),
     );
   }
+
+  Future<void> logOutUser() async {
+    await supabase.auth.signOut();
+    Navigator.of(context)
+        .pushAndRemoveUntil(RegisterPage.route(), (route) => false);
+  }
 }
 
-/// Set of widget that contains TextField and Button to submit message
 class _MessageBar extends StatefulWidget {
   const _MessageBar({
     Key? key,
